@@ -1,0 +1,74 @@
+1) Network Set UP Commands 
+
+Step 1 -  Run the very first Fabric network Set up Script for creating of channels and other artifacts and joining peers to the channel and updating anchor peers
+
+./fabricNetwork.sh up
+
+Step 2 - Install Smart Contract on Peer 0 of both User and Registerar
+
+a) docker exec -it cli /bin/bash 
+
+=============registrar peer=================
+
+b) CORE_PEER_LOCALMSPID="registrarMSP"
+
+c) CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/registrar.property-registration-network.com/users/Admin@registrar.property-registration-network.com/msp
+
+d) CORE_PEER_ADDRESS=peer0.registrar.property-registration-network.com:7051
+
+e) peer chaincode install -n regnet -v 1.1 -l node -p /opt/gopath/src/github.com/hyperledger/fabric/peer/chaincode/
+
+==============Users peer=====================
+
+f) CORE_PEER_LOCALMSPID="usersMSP"
+
+g) CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/users.property-registration-network.com/users/Admin@users.property-registration-network.com/msp
+
+h) CORE_PEER_ADDRESS=peer0.users.property-registration-network.com:9051
+
+i) peer chaincode install -n regnet -v 1.1 -l node -p /opt/gopath/src/github.com/hyperledger/fabric/peer/chaincode/
+
+Step 3 -Instantiate the Chaincode 
+
+a) docker exec -it cli /bin/bash 
+
+=====point to registerar peer0========
+
+b) CORE_PEER_LOCALMSPID="registrarMSP"
+
+c) CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/registrar.property-registration-network.com/users/Admin@registrar.property-registration-network.com/msp
+
+d) CORE_PEER_ADDRESS=peer0.registrar.property-registration-network.com:7051
+
+e) peer chaincode instantiate -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -l node -v 1.1 -c '{"Args":["org.property-registration-network.com.user:instantiate"]}' -P "OR ('registrarMSP.member','usersMSP.member')"
+
+
+2) Smart contract functionality execution/Testing commands 
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:requestNewUser","Seller","connect@rahul.com","124456789","891"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:requestNewUser","Buyer","connect@rahul.com","124456789","124"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:approveNewUser","Seller","891"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:approveNewUser","Buyer","124"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:rechargeAccount","Seller","891","upg1000"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:rechargeAccount","Buyer","124","upg1000"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:viewUser","Seller","891"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:viewUser","Buyer","124"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:propertyRegistrationRequest","Seller","891","003","500","registerede"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:approvePropertyRegistration","003"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:viewProperty","003"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:viewProperty","003"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.registrar:updateProperty","003","Seller","891","onSale"]}'
+
+peer chaincode invoke -o orderer.property-registration-network.com:7050 -C registrationchannel -n regnet -c '{"Args":["org.property-registration-network.com.user:purchaseProperty","003","Buyer","124"]}'
